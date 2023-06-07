@@ -3,14 +3,18 @@ import sys
 import pandas as pd
 from src.logger import logging
 from src.exception import CustomException
+from src.components.data_transformation import DataTransformation
+from src.components.data_transformation import DataTransformationConfig
 
 from sklearn.model_selection import train_test_split
 from dataclasses import dataclass
 
 
+# with the use of dataclass, one can directly define variables and their data types in a class
 @dataclass
 class DataSplitsPaths():
     # Create a variable that holds the three paths for the data(original, train, test)
+    # Provides the inputs to this data_ingestion component
     raw_data_path:str = os.path.join("artifacts", "raw.csv")
     train_data_path:str  = os.path.join("artifacts", "train.csv")
     test_data_path:str  = os.path.join("artifacts", "test.csv")
@@ -49,6 +53,11 @@ class DataIngestion():
         except Exception as e:
             raise CustomException(e, sys)
         
-# if __name__ == "__main__":
-#     data_ingestion_obj = DataIngestion()
-#     data_ingestion_obj.split_and_store()
+if __name__ == "__main__":
+    data_ingestion_obj = DataIngestion()
+    train_data_path, test_data_path = data_ingestion_obj.split_and_store()
+
+    data_transformation = DataTransformation()
+    data_transformation.initiate_data_transformation(train_data_path, test_data_path)
+
+    
