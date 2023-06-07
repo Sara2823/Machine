@@ -2,6 +2,8 @@ import os
 import sys
 import dill
 import pickle
+from sklearn.metrics import r2_score
+from sklearn.model_selection import GridSearchCV
 import pandas as pd
 import numpy as np
 from src.exception import CustomException
@@ -14,6 +16,36 @@ def save_obj(file_path, obj):
 
         with open(file_path, "wb") as obj_file:
             pickle.dump(obj, obj_file)
+
+    except Exception as e:
+        raise CustomException(e, sys)
+    
+
+
+def evaluate_models(X_train, y_train,X_test,y_test,models,param):
+    '''
+    Tests multiple models on the data and returns the report score for each one
+    '''
+    try:
+        report = {}
+
+        for i in range(len(list(models))): # loop over the models
+            model = list(models.values())[i]
+            para=param[list(models.keys())[i]]
+
+            gs = GridSearchCV(model,para,cv=3) # Apply grid search on the chosen parameters
+            gs.fit(X_train,y_train)
+
+            model.set_params(**gs.best_params_)
+            model.fit(X_train,y_train)  # Train model
+
+            # test and store the results
+            y_test_pred = model.predict(X_test)
+            test_model_score = r2_score(y_test, y_test_pred)
+
+            report[list(models.keys())[i]] = test_model_score
+
+        return report
 
     except Exception as e:
         raise CustomException(e, sys)
